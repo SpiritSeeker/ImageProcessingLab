@@ -2,9 +2,11 @@
 #include <fstream>
 #include <math.h>
 
+using namespace std;
+
 // Structure to hold the header information
 struct BMPHeader{
-	unsigned char file_type[3];
+	unsigned char file_type[2];
 	unsigned int file_size;
 	unsigned short reserved1;
 	unsigned short reserved2;
@@ -25,13 +27,17 @@ struct BMPHeader{
 class BitMap
 {
 	private:
-		struct BMPHeader bm_head;
 		const char* bm_filename;
 
 	public:
-		BitMap(const char* filename){
-			using namespace std;
+		struct BMPHeader bm_head;
+		unsigned char*** bm_pixelValues;
 
+		BitMap(){
+
+		}
+
+		void read(const char* filename){
 			bm_filename = filename;
 			ifstream bm_stream(filename);
 
@@ -54,8 +60,8 @@ class BitMap
 			bm_head.size = *(unsigned int*)(bm_header+14);
 			bm_head.width = *(int*)(bm_header+18);
 			bm_head.height = *(int*)(bm_header+22);
-			bm_head.planes = int(bm_header[26]);
-			bm_head.bit_count = int(bm_header[28]);
+			bm_head.planes = *(unsigned short*)(bm_header+26);
+			bm_head.bit_count = *(unsigned short*)(bm_header+28);
 			bm_head.compression_type = *(unsigned int*)(bm_header+30);
 			bm_head.image_size = *(unsigned int*)(bm_header+34);
 			bm_head.x_res = *(unsigned int*)(bm_header+38);
@@ -81,15 +87,95 @@ class BitMap
 			cout << bm_head.colors_imp << endl;
 
 			if(bm_head.bit_count == 24){
-				
+				bm_pixelValues = (unsigned char***)malloc(bm_head.height*sizeof(unsigned char**));
+				for (int i = 0; i < bm_head.height; i++){
+					bm_pixelValues[i] = (unsigned char**)malloc(bm_head.width*sizeof(unsigned char*));
+					for (int j = 0; j < bm_head.width; j++)
+						bm_pixelValues[i][j] = (unsigned char*)malloc(3*sizeof(unsigned char));
+				}
+
+				for (int i = 0; i < bm_head.height; i++){
+					for (int j = 0; j < bm_head.width; j++){
+						bm_stream >> hex >> a;
+						bm_pixelValues[i][j][2] = a;
+						bm_stream >> hex >> a;
+						bm_pixelValues[i][j][1] = a;
+						bm_stream >> hex >> a;
+						bm_pixelValues[i][j][0] = a;	
+					}
+				}
 			}
+
+			bm_stream.close();
+		}
+
+		int save(const char* filename){
+			ofstream bm_stream(filename, ios::binary);
+
+			cout << sizeof(BMPHeader) << endl;
+			// bm_stream.write((char *)(&bm_head), sizeof(BMPHeader));
+
+			// bm_head.planes *= 256;
+			// bm_head.bit_count *= 256;
+
+			bm_stream << bm_head.file_type[0];
+			bm_stream << bm_head.file_type[1];
+			bm_stream.write((char*)(&bm_head.file_size), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.reserved1), sizeof(unsigned short));
+			bm_stream.write((char*)(&bm_head.reserved2), sizeof(unsigned short));
+			bm_stream.write((char*)(&bm_head.offset_data), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.size), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.width), sizeof(int));
+			bm_stream.write((char*)(&bm_head.height), sizeof(int));
+			bm_stream.write((char*)(&bm_head.planes), sizeof(unsigned short));
+			bm_stream.write((char*)(&bm_head.bit_count), sizeof(unsigned short));
+			bm_stream.write((char*)(&bm_head.compression_type), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.image_size), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.x_res), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.y_res), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.colors_used), sizeof(unsigned int));
+			bm_stream.write((char*)(&bm_head.colors_imp), sizeof(unsigned int));
+
+			// bm_head.planes /= 256;
+			// bm_head.bit_count /= 256;
+			
+			// unsigned char a;
+			for (int i = 0; i < bm_head.height; i++){
+				for (int j = 0; j < bm_head.width; j++){
+					bm_stream << bm_pixelValues[i][j][2];
+					// bm_stream << hex << a;
+					bm_stream << bm_pixelValues[i][j][1];
+					// bm_stream << hex << a;
+					bm_stream << bm_pixelValues[i][j][0];	
+					// bm_stream << hex << a;
+				}
+			}
+			bm_stream.close();
+
+			return 1;
 		}
 		// ~BitMap();
 		
 };
 
+BitMap flip_bitmap(BitMap inp){
+	BitMap out;
+	out.bm_head = inp.bm_head;
+	int temp_h = out.bm_head.height;
+	out.bm_head.height = out.bm_head.width;
+	out.bm_head.width = temp_h;
+
+	for (int i = 0; i < out.bm_head.height; i++)
+		for (int j = 0; j < out.bm_head.width; j++)
+			out.bm_pixelValues[i][j] = inp.bm_pixelValues[out.bm_head.width - j][out.bm_head.height - i];
+
+	return out;
+}
+
 int main(int argc, char** argv)
 {
-	BitMap lena("lena_colored_256.bmp");
+	BitMap lena;
+	lena.read("lena_colored_256.bmp");
+	lena.save("lena_ex.bmp");
 	return 0;
 }
