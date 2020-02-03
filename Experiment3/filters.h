@@ -106,6 +106,36 @@ Mat filter_prewitt(Mat input_image, int kernel_size, bool padding) {
 	return out;
 }
 
+Mat gaussian_filter(int kernel_size)
+{
+	double stdv = 1.0;
+	double r, s = 2.0 * stdv * stdv;  // Assigning standard deviation to 1.0
+	double sum = 0.0;   // Initialization of sum for normalization
+	float** kernel = (float**)malloc(kernel_size * sizeof(float*));
+	for (int i = 0; i < kernel_size; i++)
+		kernel[i] = (float*)malloc(kernel_size * sizeof(float))
+
+	for (int x = -span; x <= span; x++) // Loop to generate kernel
+	{
+		for (int y = -span; y <= span; y++)
+		{
+			r = sqrt(x * x + y * y);
+			kernel[x + span][y + span] = (exp(-(r * r) / s)) / ((22/7) *s);
+			sum += kernel[x + span][y + span];
+		}
+	}
+
+	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
+		for (int j = 0; j < kernel_size; j++)
+			kernel[i][j] /= sum;
+
+
+	gaussian_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+
+	return gaussian_kernel;
+
+}
+
 Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 	Mat out = input_image.clone();
 
