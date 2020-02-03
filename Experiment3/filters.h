@@ -135,6 +135,35 @@ Mat gaussian_filter(int kernel_size)
 	return gaussian_kernel;
 
 }
+Mat log_filter(int kernel_size)
+{
+	double stdv = 1.0;
+	double r, s = stdv * stdv;  // Assigning standard deviation to 1.0
+	double sum = 0.0;   // Initialization of sum for normalization
+	float** kernel = (float**)malloc(kernel_size * sizeof(float*));
+	for (int i = 0; i < kernel_size; i++)
+		kernel[i] = (float*)malloc(kernel_size * sizeof(float))
+
+	for (int x = -span; x <= span; x++) // Loop to generate kernel
+	{
+		for (int y = -span; y <= span; y++)
+		{
+			r = (x * x + y * y);
+			kernel[x + span][y + span] = (1-(r/(2*s)))*(exp(-(r * r) /(2* s))) / ((22/7) *s*s);
+			sum += kernel[x + span][y + span];
+		}
+	}
+
+	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
+		for (int j = 0; j < kernel_size; j++)
+			kernel[i][j] /= sum;
+
+
+	log = Mat(kernel_size, kernel_size, CV_32F, kernel);
+
+	return log_kernel;
+
+}
 
 Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 	Mat out = input_image.clone();
