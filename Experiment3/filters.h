@@ -106,6 +106,39 @@ Mat filter_prewitt(Mat input_image, int kernel_size, bool padding) {
 	return out;
 }
 
+Mat convolute(Mat input_image,bool padding,Mat kernel) {
+	Mat out = input_image.clone();
 
+	int span = (kernel.rows - 1) / 2;
+	float value;
+	int i_, j_,ik_,jk_;
+
+	if (padding) {
+		for (int x = 0; x < out.rows; x++)
+			for (int y = 0; y < out.cols; y++) {
+				Vec3b& output_intensity = out.at<Vec3b>(x, y);
+				for (int z = 0; z < out.channels(); z++) {
+					value = 0;
+					for (int i = x - span; i <= x + span; i++) {
+						for (int j = y - span; j <= y + span; j++) {
+							i_ = i;
+							j_ = j;
+							if (i_ < 0) i_ = 0;
+							if (j_ < 0) j_ = 0;
+							if (i_ >= out.rows) i_ = out.rows - 1;
+							if (j_ >= out.cols) j_ = out.cols - 1;
+							ik_ = (x - i)%kernel.rows;
+							jk_ = (y - j) % kernel.cols;							
+							Vec3b input_intensity = input_image.at<Vec3b>(i_, j_);
+							value += (1.0 *kernel.at<uchar>(ik_,jk_)* input_intensity.val[z]);
+						}
+						output_intensity.val[z] = (int)value;
+					}
+				}
+			}
+	}
+
+	return out;
+}
 
 
