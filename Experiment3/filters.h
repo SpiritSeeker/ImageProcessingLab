@@ -166,6 +166,33 @@ Mat log_filter(int kernel_size)
 
 }
 
+Mat laplacian_filter(int kernel_size)
+{
+	
+	double sum = 0.0;   // Initialization of sum for normalization
+	float** kernel = (float**)malloc(kernel_size * sizeof(float*));
+	for (int i = 0; i < kernel_size; i++)
+		kernel[i] = (float*)malloc(kernel_size * sizeof(float))
+
+	for (int x = -span; x <= span; x++) // Loop to generate kernel
+	{
+		for (int y = -span; y <= span; y++)
+		{
+			r = (x * x + y * y);
+			kernel[x + span][y + span] = 1/((kernel_size*kernel_size) - 1);
+			if (x == 0 && y == 0)
+				kernel[x + span][y + span] = -1);
+		}
+	}
+
+	
+
+	laplacian_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+
+	return laplacian_kernel;
+
+}
+
 Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 	Mat out = input_image.clone();
 
