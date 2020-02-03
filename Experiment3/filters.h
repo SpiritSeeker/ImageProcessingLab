@@ -111,7 +111,7 @@ Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 
 	int span = (kernel.rows - 1) / 2;
 	float value;
-	int i_, j_,ik_,jk_;
+	int i_, j_;
 
 	if (padding) {
 		for (int x = 0; x < out.rows; x++)
@@ -119,18 +119,16 @@ Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 				Vec3b& output_intensity = out.at<Vec3b>(x, y);
 				for (int z = 0; z < out.channels(); z++) {
 					value = 0;
-					for (int i = x - span; i <= x + span; i++) {
-						for (int j = y - span; j <= y + span; j++) {
-							i_ = i;
-							j_ = j;
+					for (int i = 0; i < kernel.rows; i++) {
+						for (int j = 0; j < kernel.cols; j++) {
+							i_ = x-span+i;
+							j_ = y-span+j;
 							if (i_ < 0) i_ = 0;
 							if (j_ < 0) j_ = 0;
 							if (i_ >= out.rows) i_ = out.rows - 1;
-							if (j_ >= out.cols) j_ = out.cols - 1;
-							ik_ = (x - i)%kernel.rows;
-							jk_ = (y - j) % kernel.cols;							
-							Vec3b input_intensity = input_image.at<Vec3b>(i_, j_);
-							value += (1.0 *kernel.at<uchar>(ik_,jk_)* input_intensity.val[z])/norm_factor;
+							if (j_ >= out.cols) j_ = out.cols - 1;							
+							Vec3b input_intensity = input_image.at<Vec3b>(x, y);
+							value += (1.0 *kernel.at<uchar>(i,j)* input_intensity.val[z])/norm_factor;
 						}
 						output_intensity.val[z] = (int)value;
 					}
@@ -140,6 +138,7 @@ Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 
 	return out;
 }
+
 float sobel_3[3][3]={{1,2,1},{0,0,0},(-1,-2,-1));//norm_factor=4
 float sobel_5[5][5] = { {1,4,6,4,1},{2,8,12,8,2},{0,0,0,0,0},{-2,-8,-12,-8,-2} ,{-1,-4,-6,-4,-1} };//norm_factor=128
 float sobel_7[7][7] = { {1., 6., 15., 20., 15., 6., 1.},
