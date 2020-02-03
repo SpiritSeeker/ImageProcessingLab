@@ -150,7 +150,8 @@ Mat log_filter(int kernel_size)
 		{
 			r = (x * x + y * y);
 			kernel[x + span][y + span] = (1-(r/(2*s)))*(exp(-(r * r) /(2* s))) / ((22/7) *s*s);
-			sum += kernel[x + span][y + span];
+			(kernel[x+span][y+span] > 0)?sum += kernel[x + span][y + span]:sum-=kernel[x+span][y+span];
+			
 		}
 	}
 
@@ -159,7 +160,7 @@ Mat log_filter(int kernel_size)
 			kernel[i][j] /= sum;
 
 
-	log = Mat(kernel_size, kernel_size, CV_32F, kernel);
+	log_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
 
 	return log_kernel;
 
