@@ -119,8 +119,8 @@ Mat gaussian_filter(int kernel_size)
 	{
 		for (int y = -span; y <= span; y++)
 		{
-			r = sqrt(x * x + y * y);
-			kernel[x + span][y + span] = (exp(-(r * r) / s)) / ((22/7) *s);
+			r = (x * x + y * y);
+			kernel[x + span][y + span] = (exp(-(r) / s)) / ((22/7) *s);
 			sum += kernel[x + span][y + span];
 		}
 	}
