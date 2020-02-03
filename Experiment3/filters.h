@@ -106,7 +106,7 @@ Mat filter_prewitt(Mat input_image, int kernel_size, bool padding) {
 	return out;
 }
 
-Mat convolute(Mat input_image,bool padding,Mat kernel) {
+Mat convolute(Mat input_image,bool padding,Mat kernel,int norm_factor) {
 	Mat out = input_image.clone();
 
 	int span = (kernel.rows - 1) / 2;
@@ -130,7 +130,7 @@ Mat convolute(Mat input_image,bool padding,Mat kernel) {
 							ik_ = (x - i)%kernel.rows;
 							jk_ = (y - j) % kernel.cols;							
 							Vec3b input_intensity = input_image.at<Vec3b>(i_, j_);
-							value += (1.0 *kernel.at<uchar>(ik_,jk_)* input_intensity.val[z]);
+							value += (1.0 *kernel.at<uchar>(ik_,jk_)* input_intensity.val[z])/norm_factor;
 						}
 						output_intensity.val[z] = (int)value;
 					}
@@ -140,5 +140,24 @@ Mat convolute(Mat input_image,bool padding,Mat kernel) {
 
 	return out;
 }
+float sobel_3[3][3]={{1,2,1},{0,0,0},(-1,-2,-1));//norm_factor=4
+float sobel_5[5][5] = { {1,4,6,4,1},{2,8,12,8,2},{0,0,0,0,0},{-2,-8,-12,-8,-2} ,{-1,-4,-6,-4,-1} };//norm_factor=128
+float sobel_7[7][7] = { {1., 6., 15., 20., 15., 6., 1.},
+                        {4., 24., 60., 80., 60., 24., 4.},
+                        {5., 30., 75., 100., 75., 30., 5.},
+                        {0., 0., 0., 0., 0., 0., 0.},
+                        {-5., -30., -75., -100., -75., -30., -5.},
+                        {-4., -24., -60., -80., -60., -24., -4.},
+                        { -1., -6., -15., -20., -15., -6., -1.} };//norm_factor=2048
 
+float sobel_9[9][9] = { {1., 8., 28., 56., 70., 56., 28., 8., 1.} ,
+{6., 48., 168., 336., 420., 336., 168., 48., 6.},
+{14., 112., 392., 784., 980., 784., 392., 112., 14.},
+{14., 112., 392., 784., 980., 784., 392., 112., 14.},
+{0., 0., 0., 0., 0., 0., 0., 0., 0.},
+{-14., -112., -392., -784., -980., -784., -392., -112., -14.},
+{-14., -112., -392., -784., -980., -784., -392., -112., -14.},
+{-6., -48., -168., -336., -420., -336., -168., -48., -6.},
+{ -1., -8., -28., -56., -70., -56., -28., -8., -1.}};//norm_factor=32768
+		     
 
