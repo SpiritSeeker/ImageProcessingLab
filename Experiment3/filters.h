@@ -174,30 +174,30 @@ Mat laplacian_filter(Mat input_image, int kernel_size)
 	
 }
 
-Mat sobelFilter(Mat input_image,int kernel_size,int h)
+Mat sobelFilter(Mat input_image, int kernel_size, int h)
 {
 	//h=1 for horizontal
 	//h=0 for vertical
 	//h=-1 for diagonal
 	float sobel_3[3][3] = { {1,2,1},{0,0,0},{-1,-2,1} };//norm_factor=8
-    float sobel_5[5][5] = { {1,4,6,4,1},{2,8,12,8,2},{0,0,0,0,0},{-2,-8,-12,-8,-2} ,{-1,-4,-6,-4,-1} };//norm_factor=128
-    float sobel_7[7][7] = { {1., 6., 15., 20., 15., 6., 1.},
-						    {4., 24., 60., 80., 60., 24., 4.},
-						    {5., 30., 75., 100., 75., 30., 5.},
-						    {0., 0., 0., 0., 0., 0., 0.},
-						    {-5., -30., -75., -100., -75., -30., -5.},
-						    {-4., -24., -60., -80., -60., -24., -4.},
-						    { -1., -6., -15., -20., -15., -6., -1.} };//norm_factor=2048
+	float sobel_5[5][5] = { {1,4,6,4,1},{2,8,12,8,2},{0,0,0,0,0},{-2,-8,-12,-8,-2} ,{-1,-4,-6,-4,-1} };//norm_factor=128
+	float sobel_7[7][7] = { {1., 6., 15., 20., 15., 6., 1.},
+							{4., 24., 60., 80., 60., 24., 4.},
+							{5., 30., 75., 100., 75., 30., 5.},
+							{0., 0., 0., 0., 0., 0., 0.},
+							{-5., -30., -75., -100., -75., -30., -5.},
+							{-4., -24., -60., -80., -60., -24., -4.},
+							{ -1., -6., -15., -20., -15., -6., -1.} };//norm_factor=2048
 
-    float sobel_9[9][9] = { {1., 8., 28., 56., 70., 56., 28., 8., 1.} ,
-                            {6., 48., 168., 336., 420., 336., 168., 48., 6.},
-                            {14., 112., 392., 784., 980., 784., 392., 112., 14.},
-                            {14., 112., 392., 784., 980., 784., 392., 112., 14.},
-                            {0., 0., 0., 0., 0., 0., 0., 0., 0.},
-                            {-14., -112., -392., -784., -980., -784., -392., -112., -14.},
-                            {-14., -112., -392., -784., -980., -784., -392., -112., -14.},
-                            {-6., -48., -168., -336., -420., -336., -168., -48., -6.},
-                            { -1., -8., -28., -56., -70., -56., -28., -8., -1.}};//norm_factor=32768
+	float sobel_9[9][9] = { {1., 8., 28., 56., 70., 56., 28., 8., 1.} ,
+							{6., 48., 168., 336., 420., 336., 168., 48., 6.},
+							{14., 112., 392., 784., 980., 784., 392., 112., 14.},
+							{14., 112., 392., 784., 980., 784., 392., 112., 14.},
+							{0., 0., 0., 0., 0., 0., 0., 0., 0.},
+							{-14., -112., -392., -784., -980., -784., -392., -112., -14.},
+							{-14., -112., -392., -784., -980., -784., -392., -112., -14.},
+							{-6., -48., -168., -336., -420., -336., -168., -48., -6.},
+							{ -1., -8., -28., -56., -70., -56., -28., -8., -1.} };//norm_factor=32768
 	int factor[10];
 	factor[3] = 8;
 	factor[5] = 128;
@@ -224,20 +224,29 @@ Mat sobelFilter(Mat input_image,int kernel_size,int h)
 			if (kernel_size == 7)
 			{
 				if (h == 1)  kernel[i][j] = sobel_7[i][j] / 2048;
-				else if(h==0) kernel[i][j] = sobel_7[j][i] / 2048;
+				else if (h == 0) kernel[i][j] = sobel_7[j][i] / 2048;
 			}
 			if (kernel_size == 9)
 			{
 				if (h == 1) kernel[i][j] = sobel_9[i][j] / 32768;
 				else if (h == 0) kernel[i][j] = sobel_9[j][i] / 32768;
 			}
-		
-		}
-	Mat sobel_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
-	return convolute(input_image, 1, sobel_kernel);
- }
 
-Mat gaussian_filter(Mat input_image,int kernel_size)
+		}
+	//Mat sobel_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+	Mat sobel_kernel(kernel_size, kernel_size, CV_32F);
+	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
+		for (int j = 0; j < kernel_size; j++)
+		{
+			kernel[i][j] /= (kernel_size * kernel_size) - 1;
+			sobel_kernel.at<float>(i, j) = kernel[i][j];
+
+		}
+	//std :: cout << sobel_kernel;
+	return convolute(input_image, true, sobel_kernel);
+}
+
+Mat gaussian_filter(Mat input_image, int kernel_size)
 {
 	int span = (kernel_size - 1) / 2;
 	double stdv = 1.0;
@@ -247,26 +256,31 @@ Mat gaussian_filter(Mat input_image,int kernel_size)
 	for (int i = 0; i < kernel_size; i++)
 		kernel[i] = (float*)malloc(kernel_size * sizeof(float));
 
-		for (int x = -span; x <= span; x++) // Loop to generate kernel
+	for (int x = -span; x <= span; x++) // Loop to generate kernel
+	{
+		for (int y = -span; y <= span; y++)
 		{
-			for (int y = -span; y <= span; y++)
-			{
-				r = (x * x + y * y);
-				kernel[x + span][y + span] = (exp(-(r) / s)) / ((22 / 7) * s);
-				sum += kernel[x + span][y + span];
-			}
+			r = (x * x + y * y);
+			kernel[x + span][y + span] = (exp(-(r) / s)) / ((22 / 7) * s);
+			sum += kernel[x + span][y + span];
 		}
+	}
 
+	Mat gaussian_kernel(kernel_size, kernel_size, CV_32F);
 	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
 		for (int j = 0; j < kernel_size; j++)
+		{
 			kernel[i][j] /= sum;
+			gaussian_kernel.at<float>(i, j) = kernel[i][j];
+
+		}
 
 
-	Mat gaussian_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+	//Mat gaussian_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
 
-	return convolute(input_image, 1, gaussian_kernel);
+	return convolute(input_image, true, gaussian_kernel);
 }
-Mat log_filter(Mat input_image,int kernel_size)
+Mat log_filter(Mat input_image, int kernel_size)
 {
 	double stdv = 1.0;
 	int span = (kernel_size - 1) / 2;
@@ -276,25 +290,30 @@ Mat log_filter(Mat input_image,int kernel_size)
 	for (int i = 0; i < kernel_size; i++)
 		kernel[i] = (float*)malloc(kernel_size * sizeof(float));
 
-		for (int x = -span; x <= span; x++) // Loop to generate kernel
+	for (int x = -span; x <= span; x++) // Loop to generate kernel
+	{
+		for (int y = -span; y <= span; y++)
 		{
-			for (int y = -span; y <= span; y++)
-			{
-				r = (x * x + y * y);
-				kernel[x + span][y + span] = (1 - (r / (2 * s))) * (exp(-(r * r) / (2 * s))) / ((22 / 7) * s * s);
-				(kernel[x + span][y + span] > 0) ? sum += kernel[x + span][y + span] : sum -= kernel[x + span][y + span];
+			r = (x * x + y * y);
+			kernel[x + span][y + span] = (1 - (r / (2 * s))) * (exp(-(r * r) / (2 * s))) / ((22 / 7) * s * s);
+			sum=(kernel[x + span][y + span] > 0) ? sum + kernel[x + span][y + span] : sum - kernel[x + span][y + span];
 
-			}
 		}
+	}
 
+
+	Mat log_kernel(kernel_size, kernel_size, CV_32F);
 	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
 		for (int j = 0; j < kernel_size; j++)
+		{
 			kernel[i][j] /= sum;
+			log_kernel.at<float>(i, j) = kernel[i][j];
 
+		}
 
-	Mat log_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+	//Mat log_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
 
-	return convolute(input_image, 1, log_kernel);
+	return convolute(input_image, true, log_kernel);
 }
 
 
