@@ -282,39 +282,8 @@ Mat gaussian_filter(Mat input_image, int kernel_size)
 }
 Mat log_filter(Mat input_image, int kernel_size)
 {
-	double stdv = 1.0;
-	int span = (kernel_size - 1) / 2;
-	double r, s = stdv * stdv;  // Assigning standard deviation to 1.0
-	double sum = 0.0;   // Initialization of sum for normalization
-	float** kernel = (float**)malloc(kernel_size * sizeof(float*));
-	for (int i = 0; i < kernel_size; i++)
-		kernel[i] = (float*)malloc(kernel_size * sizeof(float));
-
-	for (int x = -span; x <= span; x++) // Loop to generate kernel
-	{
-		for (int y = -span; y <= span; y++)
-		{
-			r = (x * x + y * y);
-			kernel[x + span][y + span] = (1 - (r / (2 * s))) * (exp(-(r * r) / (2 * s))) / ((22 / 7) * s * s);
-			sum=(kernel[x + span][y + span] > 0) ? sum + kernel[x + span][y + span] : sum - kernel[x + span][y + span];
-
-		}
-	}
-
-
-	Mat log_kernel(kernel_size, kernel_size, CV_32F);
-	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
-		for (int j = 0; j < kernel_size; j++)
-		{
-			kernel[i][j] /= sum;
-			log_kernel.at<float>(i, j) = kernel[i][j];
-
-		}
-
-	//Mat log_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
-
-	return convolute(input_image, true, log_kernel);
+	Mat gout=gaussian_filter(input_image,kernel_size);
+	Mat out=laplacian_filter(gout,kernel_size);
+	return out;
+	
 }
-
-
-
