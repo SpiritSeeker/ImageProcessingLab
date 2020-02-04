@@ -130,7 +130,7 @@ Mat convolute(Mat input_image, bool padding, Mat kernel) {
 							if (j_ < 0) j_ = 0;
 							if (i_ >= out.rows) i_ = out.rows - 1;
 							if (j_ >= out.cols) j_ = out.cols - 1;
-							Vec3b input_intensity = input_image.at<Vec3b>(x, y);
+							Vec3b input_intensity = input_image.at<Vec3b>(i_, j_);
 							value += (1.0 * kernel.at<float>(i, j) * input_intensity.val[z]);
 						}
 						output_intensity.val[z] = (int)value;
