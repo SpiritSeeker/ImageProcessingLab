@@ -108,6 +108,7 @@ Mat filter_prewitt(Mat input_image, int kernel_size, bool padding) {
 
 	return out;
 }
+
 Mat convolute(Mat input_image, bool padding, Mat kernel) {
 	Mat out = input_image.clone();
 
@@ -130,7 +131,7 @@ Mat convolute(Mat input_image, bool padding, Mat kernel) {
 							if (i_ >= out.rows) i_ = out.rows - 1;
 							if (j_ >= out.cols) j_ = out.cols - 1;
 							Vec3b input_intensity = input_image.at<Vec3b>(x, y);
-							value += (1.0 * kernel.at<uchar>(i, j) * input_intensity.val[z]);
+							value += (1.0 * kernel.at<float>(i, j) * input_intensity.val[z]);
 						}
 						output_intensity.val[z] = (int)value;
 					}
@@ -140,26 +141,37 @@ Mat convolute(Mat input_image, bool padding, Mat kernel) {
 
 	return out;
 }
-Mat laplacian_filter(Mat input_image,int kernel_size)
-{	
+
+Mat laplacian_filter(Mat input_image, int kernel_size)
+{
 	int span = (kernel_size - 1) / 2;
 
 	float** kernel = (float**)malloc(kernel_size * sizeof(float*));
 	for (int i = 0; i < kernel_size; i++)
 		kernel[i] = (float*)malloc(kernel_size * sizeof(float));
 
-	for (int x = -span; x <= span; x++) 
+	for (int x = -span; x <= span; x++)
 	{
 		for (int y = -span; y <= span; y++)
 		{
-			kernel[x + span][y + span] = 1.0/((kernel_size*kernel_size) - 1);
+			kernel[x + span][y + span] = 1.0 / ((kernel_size * kernel_size) - 1);
 			if (x == 0 && y == 0)
 				kernel[x + span][y + span] = -1;
 		}
 	}
-	Mat laplacian_kernel = Mat(kernel_size, kernel_size, CV_32F, kernel);
+	
+	Mat laplacian_kernel(kernel_size, kernel_size, CV_32F);
+	for (int i = 0; i < kernel_size; i++) // Loop to normalize the kernel
+		for (int j = 0; j < kernel_size; j++)
+		{
+			kernel[i][j] /=( kernel_size * kernel_size)-1;
+			laplacian_kernel.at<float>(i, j) = kernel[i][j];
 
-	return convolute(input_image,1,laplacian_kernel);
+		}
+
+	std::cout << laplacian_kernel;
+	return convolute(input_image, true, laplacian_kernel);
+	
 }
 
 Mat sobelFilter(Mat input_image,int kernel_size,int h)
